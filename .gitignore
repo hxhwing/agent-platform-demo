@@ -5,8 +5,8 @@
 *.env
 !*.env.example
 
-# Claude Code local settings hold real deployment URLs / project numbers.
-.claude/settings.local.json
+# Claude Code working files (local settings hold real deployment URLs / project numbers).
+.claude/
 
 # Terraform local vars that may hold a real project id.
 **/vars/my_env.tfvars
