@@ -8,9 +8,6 @@
 # Claude Code local settings hold real deployment URLs / project numbers.
 .claude/settings.local.json
 
-# Private owner-only reference (contains internal project id, not for public repo).
-GE_INTEGRATION_NOTES.md
-
 # Terraform local vars that may hold a real project id.
 **/vars/my_env.tfvars
 *.tfvars.local

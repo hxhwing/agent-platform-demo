@@ -7,8 +7,28 @@ Upload a character sketch (or a short brief) → a team of agents produces a fin
 character — refined portrait, lore, balanced stats, and 3-language localization — shown
 inside Gemini Enterprise.
 
-> 📖 **Full step-by-step build guide:** [`guide.md`](guide.md) — self-contained; the
-> Antigravity agent regenerates the entire repo from it.
+## 📚 Interactive codelab
+
+The full build guide is best read as an interactive, step-by-step **Google Codelab**,
+hosted on **GitHub Pages**:
+
+> 👉 **[Open the interactive codelab](https://hxhwing.github.io/agent-platform-demo/)**
+
+The codelab is rebuilt from [`guide.md`](guide.md) and published automatically by
+[`.github/workflows/codelab-pages.yml`](.github/workflows/codelab-pages.yml) on every push.
+
+**One-time setup:** in your repo go to **Settings → Pages → Build and deployment →
+Source** and select **GitHub Actions**. The next push to `main` (or a manual run from the
+**Actions** tab) publishes the site.
+
+Other ways to view it:
+- **Read it as Markdown:** [`guide.md`](guide.md) (renders fine on GitHub)
+- **Preview locally:** `cd codelab && ./build.sh && ./serve.sh` → `http://localhost:8080`
+
+> ⚠️ The codelab HTML does **not** render in the GitHub file browser (GitHub shows raw
+> source for `.html`) — use the Pages link above.
+
+See [`codelab/README.md`](codelab/README.md) for how the codelab is generated.
 
 ---
 
@@ -64,29 +84,6 @@ cp localization-studio/.env.example localization-studio/.env
 ```
 
 For the full deploy-to-cloud walkthrough, follow [`guide.md`](guide.md).
-
-## 📚 Interactive codelab
-
-The build guide can also be read as an interactive, step-by-step **Google Codelab**,
-hosted on **GitHub Pages**:
-
-> 👉 **[Open the interactive codelab](https://hxhwing.github.io/agent-platform-demo/)**
-
-The codelab is rebuilt from [`guide.md`](guide.md) and published automatically by
-[`.github/workflows/codelab-pages.yml`](.github/workflows/codelab-pages.yml) on every push.
-
-**One-time setup:** in your repo go to **Settings → Pages → Build and deployment →
-Source** and select **GitHub Actions**. The next push to `main` (or a manual run from the
-**Actions** tab) publishes the site.
-
-Other ways to view it:
-- **Read it as Markdown:** [`guide.md`](guide.md) (renders fine on GitHub)
-- **Preview locally:** `cd codelab && ./build.sh && ./serve.sh` → `http://localhost:8080`
-
-> ⚠️ The codelab HTML does **not** render in the GitHub file browser (GitHub shows raw
-> source for `.html`) — use the Pages link above.
-
-See [`codelab/README.md`](codelab/README.md) for how the codelab is generated.
 
 ## Requirements
 
