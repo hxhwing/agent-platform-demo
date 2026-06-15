@@ -1,0 +1,15 @@
+sequenceDiagram
+  actor U as User (GE)
+  participant P as Producer
+  participant M as Memory Bank
+  participant A as art_creator
+  participant X as A2A Agent (localization)
+  U->>P: sketch + brief
+  P->>M: preload memory (world / art style)
+  P->>P: researcher → story → skills
+  P->>A: generate portrait
+  A-->>P: portrait PNG (inline bytes)
+  P->>X: localize → zh-CN, es, ja
+  X-->>P: localized table
+  P->>M: save session to memory
+  P-->>U: Markdown sheet (portrait in the middle)

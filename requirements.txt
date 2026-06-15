@@ -1,0 +1,11 @@
+# Game Character Designer — Agent Platform demo (flat-install convenience only).
+#
+# The AUTHORITATIVE dependencies live in each project's pyproject.toml + uv.lock
+# (game-producer/, localization-studio/) — that's what agents-cli / uv / deploy use.
+# This list is just for a quick `pip install -r requirements.txt` outside uv.
+
+google-adk[a2a]==1.34.1       # ADK + A2A client/server (RemoteA2aAgent, A2A app)
+a2a-sdk[http-server]==0.3.26  # A2A protocol SDK + starlette/sse-starlette http deps
+sse-starlette==3.4.4          # SSE streaming for the A2A JSON-RPC app
+google-genai==1.75.0          # Vertex AI Gemini client (text + Nano Banana 2 image gen)
+uvicorn==0.48.0               # ASGI server for the localization-studio A2A endpoint

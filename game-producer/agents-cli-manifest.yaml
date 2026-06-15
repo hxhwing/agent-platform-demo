@@ -1,0 +1,23 @@
+name: "game-producer"
+acli_version: "0.3.0"
+agent_directory: "app"
+region: "us-central1"
+base_template: "adk"
+generated_at: "2026-06-05T02:35:47.594043+00:00"
+language: "python"
+create_params:
+  deployment_target: "agent_runtime"
+  session_type: "none"
+  cicd_runner: "skip"
+  include_data_ingestion: false
+  is_a2a: false
+  datastore: "none"
+  agent_guidance_filename: "CLAUDE.md"
+# This file is the deploy TARGET TOGGLE. Set the three fields above, then `agents-cli deploy`:
+#   Option 1 — Agent Runtime (main, Markdown + per-user memory):
+#       base_template: "adk", deployment_target: "agent_runtime", is_a2a: false
+#       deploy WITHOUT A2UI_ENABLED.
+#   Option 2 — Cloud Run (A2A + A2UI card):
+#       base_template: "adk_a2a", deployment_target: "cloud_run", is_a2a: true
+#       deploy WITH A2UI_ENABLED=1 (+ AGENT_ENGINE_ID, AGENT_ENGINE_LOCATION).
+# Currently set to: Option 1 (Agent Runtime).

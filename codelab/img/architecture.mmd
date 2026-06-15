@@ -1,0 +1,18 @@
+graph TD
+  U(["👤 User in Gemini Enterprise"]) -->|"sketch + brief"| GP
+  subgraph PROD["Main Agent (game-producer) · Agent Runtime"]
+    GP["🎬 Producer<br/>(orchestrator)"]
+    R["🔎 researcher"]
+    AD["🎨 art_creator"]
+    LW["📜 story_writer"]
+    BD["⚖️ skill_designer"]
+    GP --> R
+    GP --> AD
+    GP --> LW
+    GP --> BD
+  end
+  AD -->|"gemini-3.1-flash-image"| IMG["🖼️ portrait PNG<br/>(inline image bytes)"]
+  IMG --> GP
+  GP -->|"A2A"| LOC["🌐 A2A Agent (localization-studio)<br/>Cloud Run · external org"]
+  GP <-->|"managed"| MEM[("🧠 Agent Engine<br/>Sessions + Memory Bank")]
+  GP -->|"Markdown sheet + portrait bytes"| U

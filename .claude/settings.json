@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv pip *)",
+      "Bash(uv lock *)",
+      "Bash(uv sync *)",
+      "Bash(agents-cli deploy *)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(agents-cli publish *)"
+    ]
+  }
+}

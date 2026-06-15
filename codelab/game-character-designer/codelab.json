@@ -1,0 +1,24 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2026-06-15T08:13:55Z",
+  "id": "game-character-designer",
+  "duration": 1,
+  "title": "🎮 Game Character Designer",
+  "authors": "maxxh@google.com",
+  "summary": "Build the Game Character Designer demo on the Gemini Enterprise Agent Platform — multi-agent character generation with managed memory, A2A, and Model Armor.",
+  "source": "guide-codelab.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "ai",
+    "gemini-enterprise",
+    "agent-platform"
+  ],
+  "tags": [],
+  "url": "game-character-designer"
+}
