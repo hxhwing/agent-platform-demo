@@ -7,6 +7,8 @@
 
 # Claude Code working files (local settings hold real deployment URLs / project numbers).
 .claude/
+CLAUDE.md
+**/CLAUDE.md
 
 # Terraform local vars that may hold a real project id.
 **/vars/my_env.tfvars
