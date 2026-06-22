@@ -57,11 +57,14 @@
 - [ ] dev-ui access note: `gcloud run services proxy game-producer --region $REGION` → `/dev-ui/`.
 
 ## Phase 6 — Govern + Observe
-- [ ] Model Armor floor settings → `--add-integrated-services=VERTEX_AI --vertex-ai-enforcement-type=INSPECT_AND_BLOCK`.
+- [ ] Model Armor (Gemini Enterprise path — NOT Vertex floor settings). Three steps:
+  1. **Create a template** (multi-region `us`; gcloud needs `gcloud config set api_endpoint_overrides/modelarmor https://modelarmor.us.rep.googleapis.com/`): `gcloud model-armor templates create ge-game-studio-armor --location=us --pi-and-jailbreak-filter-settings-enforcement=enabled --pi-and-jailbreak-filter-settings-confidence-level=MEDIUM_AND_ABOVE --malicious-uri-filter-settings-enforcement=enabled --basic-config-filter-enforcement=enabled`. Multi-language detection is **REST-only** (no gcloud flag): PATCH `templateMetadata.multiLanguageDetection.enableMultiLanguageDetection=true`. (No Responsible AI filters.)
+  2. **Enable on the GE app**: PATCH the `default_assistant` `…?update_mask=customerPolicy` with `customerPolicy.modelArmorConfig` → `userPromptTemplate` + `responseTemplate` = the template resource name, `failureMode: FAIL_CLOSED` (screens prompts AND responses).
+  3. **Grant** the Discovery Engine service agent `service-$PROJECT_NUMBER@gcp-sa-discoveryengine.iam.gserviceaccount.com` → `roles/modelarmor.user`, else FAIL_CLOSED blocks every message.
 - [ ] `agents-cli infra single-project` (Cloud Trace + BigQuery analytics).
 
 ## Acceptance
 - [ ] Local: sketch+brief → portrait + lore + stats + 3-lang localization; A2A hop fires.
 - [ ] Agent Runtime in GE: Markdown sheet, portrait between World and Lore, narrated steps, per-user memory across sessions.
 - [ ] (Optional) Cloud Run in GE: A2UI card renders; dev-ui reachable via proxy.
-- [ ] Govern: injection blocked. Observe: Cloud Trace waterfall present.
+- [ ] Govern: injection / malicious-URL / sensitive-data blocked by Model Armor (prompt + response). Observe: Cloud Trace waterfall present.

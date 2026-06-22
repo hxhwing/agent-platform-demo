@@ -18,6 +18,9 @@ CLAUDE.md
 .adk/
 **/.adk/
 
+# Deploy output: holds the real reasoning-engine resource name + project number.
+**/deployment_metadata.json
+
 # ─── Python caches & envs ────────────────────────────────────────────
 __pycache__/
 *.py[cod]
