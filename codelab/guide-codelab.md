@@ -478,10 +478,10 @@ so every user prompt *and* model response is screened against it.
 
 > 🤖 **Antigravity** — "Create a Model Armor template in multi-region `us` with
 > prompt-injection/jailbreak (medium and above), malicious-URI, basic sensitive-data
-> protection, and multi-language detection enabled; then enable Model Armor on my
-> Gemini Enterprise app `<GE_APP_ID>` referencing that template, fail-closed, screening
-> both prompts and responses. Also provision observability (Cloud Trace + BigQuery
-> analytics) for game-producer."
+> protection, multi-language detection, and request/response logging enabled; then
+> enable Model Armor on my Gemini Enterprise app `<GE_APP_ID>` referencing that template,
+> fail-closed, screening both prompts and responses. Also provision observability
+> (Cloud Trace + BigQuery analytics) for game-producer."
 
 ```bash
 # ⌨️ manual equivalent
@@ -493,12 +493,13 @@ gcloud model-armor templates create ge-game-studio-armor \
   --pi-and-jailbreak-filter-settings-confidence-level=MEDIUM_AND_ABOVE \
   --malicious-uri-filter-settings-enforcement=enabled \
   --basic-config-filter-enforcement=enabled
-# Multi-language detection isn't a gcloud flag — set it via REST:
+# Multi-language detection + request/response logging (logs each prompt/response
+# screening to Cloud Logging) — set both via REST in one PATCH:
 curl -s -X PATCH \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H "X-Goog-User-Project: $PROJECT" -H "Content-Type: application/json" \
-  "https://modelarmor.us.rep.googleapis.com/v1/projects/$PROJECT/locations/us/templates/ge-game-studio-armor?updateMask=templateMetadata.multiLanguageDetection.enableMultiLanguageDetection" \
-  -d '{"templateMetadata":{"multiLanguageDetection":{"enableMultiLanguageDetection":true}}}'
+  "https://modelarmor.us.rep.googleapis.com/v1/projects/$PROJECT/locations/us/templates/ge-game-studio-armor?updateMask=templateMetadata.multiLanguageDetection.enableMultiLanguageDetection,templateMetadata.logSanitizeOperations" \
+  -d '{"templateMetadata":{"multiLanguageDetection":{"enableMultiLanguageDetection":true},"logSanitizeOperations":true}}'
 gcloud config unset api_endpoint_overrides/modelarmor
 
 # 2) Enable Model Armor on the GE app's assistant (screens prompts AND responses).
@@ -705,7 +706,7 @@ Both GE registrations can coexist.
 
 ### Phase 6 — Govern + Observe
 - [ ] Model Armor (Gemini Enterprise path — NOT Vertex floor settings). Three steps:
-  1. **Create a template** (multi-region `us`; gcloud needs `gcloud config set api_endpoint_overrides/modelarmor https://modelarmor.us.rep.googleapis.com/`): `gcloud model-armor templates create ge-game-studio-armor --location=us --pi-and-jailbreak-filter-settings-enforcement=enabled --pi-and-jailbreak-filter-settings-confidence-level=MEDIUM_AND_ABOVE --malicious-uri-filter-settings-enforcement=enabled --basic-config-filter-enforcement=enabled`. Multi-language detection is **REST-only**: PATCH `templateMetadata.multiLanguageDetection.enableMultiLanguageDetection=true`. (No Responsible AI filters.)
+  1. **Create a template** (multi-region `us`; gcloud needs `gcloud config set api_endpoint_overrides/modelarmor https://modelarmor.us.rep.googleapis.com/`): `gcloud model-armor templates create ge-game-studio-armor --location=us --pi-and-jailbreak-filter-settings-enforcement=enabled --pi-and-jailbreak-filter-settings-confidence-level=MEDIUM_AND_ABOVE --malicious-uri-filter-settings-enforcement=enabled --basic-config-filter-enforcement=enabled`. Then **via REST** (one PATCH) enable multi-language detection + request/response logging: `templateMetadata.multiLanguageDetection.enableMultiLanguageDetection=true` and `templateMetadata.logSanitizeOperations=true`. (No Responsible AI filters.)
   2. **Enable on the GE app**: PATCH the `default_assistant` `…?update_mask=customerPolicy` with `customerPolicy.modelArmorConfig` → `userPromptTemplate` + `responseTemplate` = the template resource name, `failureMode: FAIL_CLOSED` (screens prompts AND responses).
   3. **Grant** the Discovery Engine service agent `service-$PROJECT_NUMBER@gcp-sa-discoveryengine.iam.gserviceaccount.com` → `roles/modelarmor.user`, else FAIL_CLOSED blocks every message.
 - [ ] `agents-cli infra single-project` (Cloud Trace + BigQuery analytics).

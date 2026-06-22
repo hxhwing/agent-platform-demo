@@ -522,10 +522,10 @@ so every user prompt *and* model response is screened against it.
 
 > 🤖 **Antigravity** — *"Create a Model Armor template in multi-region `us` with
 > prompt-injection/jailbreak (medium and above), malicious-URI, basic sensitive-data
-> protection, and multi-language detection enabled; then enable Model Armor on my
-> Gemini Enterprise app `<GE_APP_ID>` referencing that template, fail-closed, screening
-> both prompts and responses. Also provision observability (Cloud Trace + BigQuery
-> analytics) for game-producer."*
+> protection, multi-language detection, and request/response logging enabled; then
+> enable Model Armor on my Gemini Enterprise app `<GE_APP_ID>` referencing that template,
+> fail-closed, screening both prompts and responses. Also provision observability
+> (Cloud Trace + BigQuery analytics) for game-producer."*
 
 ```bash
 # ⌨️ manual equivalent
@@ -537,12 +537,13 @@ gcloud model-armor templates create ge-game-studio-armor \
   --pi-and-jailbreak-filter-settings-confidence-level=MEDIUM_AND_ABOVE \
   --malicious-uri-filter-settings-enforcement=enabled \
   --basic-config-filter-enforcement=enabled
-# Multi-language detection isn't a gcloud flag — set it via REST:
+# Multi-language detection + request/response logging (logs each prompt/response
+# screening to Cloud Logging) — set both via REST in one PATCH:
 curl -s -X PATCH \
   -H "Authorization: Bearer $(gcloud auth print-access-token)" \
   -H "X-Goog-User-Project: $PROJECT" -H "Content-Type: application/json" \
-  "https://modelarmor.us.rep.googleapis.com/v1/projects/$PROJECT/locations/us/templates/ge-game-studio-armor?updateMask=templateMetadata.multiLanguageDetection.enableMultiLanguageDetection" \
-  -d '{"templateMetadata":{"multiLanguageDetection":{"enableMultiLanguageDetection":true}}}'
+  "https://modelarmor.us.rep.googleapis.com/v1/projects/$PROJECT/locations/us/templates/ge-game-studio-armor?updateMask=templateMetadata.multiLanguageDetection.enableMultiLanguageDetection,templateMetadata.logSanitizeOperations" \
+  -d '{"templateMetadata":{"multiLanguageDetection":{"enableMultiLanguageDetection":true},"logSanitizeOperations":true}}'
 gcloud config unset api_endpoint_overrides/modelarmor
 
 # 2) Enable Model Armor on the GE app's assistant (screens prompts AND responses).
@@ -749,7 +750,7 @@ Both GE registrations can coexist.
 - [ ] dev-ui access note: `gcloud run services proxy game-producer --region $REGION` → `/dev-ui/`.
 
 ### Phase 6 — Govern + Observe
-- [ ] Model Armor: (1) create a template (multi-region `us`) — PI/jailbreak `MEDIUM_AND_ABOVE`, malicious-URI, SDP basic, multi-language detection (multi-language is REST-only, not a gcloud flag); (2) enable it on the GE app's `default_assistant` via `customerPolicy.modelArmorConfig` (`userPromptTemplate`+`responseTemplate`, `FAIL_CLOSED`); (3) grant the Discovery Engine service agent `roles/modelarmor.user` (else FAIL_CLOSED blocks everything).
+- [ ] Model Armor: (1) create a template (multi-region `us`) — PI/jailbreak `MEDIUM_AND_ABOVE`, malicious-URI, SDP basic, plus multi-language detection + request/response logging (`templateMetadata.logSanitizeOperations`) via REST (both REST-only here); (2) enable it on the GE app's `default_assistant` via `customerPolicy.modelArmorConfig` (`userPromptTemplate`+`responseTemplate`, `FAIL_CLOSED`); (3) grant the Discovery Engine service agent `roles/modelarmor.user` (else FAIL_CLOSED blocks everything).
 - [ ] `agents-cli infra single-project` (Cloud Trace + BigQuery analytics).
 
 ### Acceptance
