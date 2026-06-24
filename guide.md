@@ -86,7 +86,7 @@ one external A2A agent, then assembles the finished character sheet:
 | Agent | Role |
 |---|---|
 | 🎬 **Producer** (orchestrator) | Routes the request to each specialist, aggregates their output, saves per-user memory, and renders the final character sheet. |
-| 🔎 **researcher** | Web-searches the concept: whether it's an existing game IP **and** the genre's art style, story themes, and current trends — so the other specialists can match them. |
+| 🔎 **researcher** | Researches the concept: whether it's an existing game IP **and** the genre's art style, story themes, and current trends — so the other specialists can match them. Uses `google_search` for live web search **and** `url_context` to read any reference URL the user supplies; the user can also attach documents as the game's world/lore background. |
 | 🎨 **art_creator** | Designs the look and paints the character portrait with `gemini-3.1-flash-image`. |
 | 📜 **story_writer** | Writes the character's persona — name, tagline, backstory, and a signature line of dialogue. |
 | ⚖️ **skill_designer** | Designs the character's skills (and balanced combat stats) as JSON. |
@@ -349,7 +349,7 @@ A2A localization studio), loads memory, and formats the final reply.
 > (`gemini-3.5-flash`, location global) that orchestrates these **5 specialists as
 > AgentTools**, each with its own focused instruction:
 >
-> - **`researcher`** — a `google_search`-only agent; (a) checks whether the concept is an existing game IP and returns canonical facts the others must respect, and (b) researches the relevant game/genre's art style, story themes, and current trends so the other specialists can match them.
+> - **`researcher`** — a built-in-tools agent with **`google_search` + `url_context`** (two built-in tools can coexist; no function tools may be mixed in). It (a) checks whether the concept is an existing game IP and returns canonical facts the others must respect, (b) researches the relevant game/genre's art style, story themes, and current trends, and (c) when the user supplies reference URLs (read via `url_context`) or attaches documents (the producer extracts the background text and passes it in), treats that material as authoritative game background. The producer forwards the researcher's findings — IP canon, genre/style, and any user-provided background — as input to `art_creator`, `story_writer`, and `skill_designer`.
 > - **`art_creator`** — owns `generate_character_portrait`; writes the art brief and passes the `aspect_ratio`/`image_size`.
 > - **`story_writer`** — writes the character's persona: name, tagline, backstory, and a signature line of dialogue.
 > - **`skill_designer`** — designs the character's skills (and balanced combat stats) as JSON.
@@ -581,7 +581,10 @@ cd game-producer && agents-cli infra single-project && cd ..
 
 1. **Multimodal multi-agent** — attach a character sketch (any PNG) + *"做一个森林精灵
    法师,顽皮但智慧"*. Watch the narrated steps fan out: researcher → art_creator →
-   story_writer → skill_designer → **localization (A2A!)** → producer.
+   story_writer → skill_designer → **localization (A2A!)** → producer. *(Optional: also
+   paste a reference URL or attach a lore document as the game's background — the
+   researcher reads the URL via `url_context`, and the producer feeds that background
+   into the other specialists.)*
 2. **Rich result** — a clean Markdown sheet with the portrait in the middle.
 3. **Memory Bank** — new session: *"再做一个同世界观的反派"* → the producer reuses the
    locked world + art style (cross-session, **per user**).
@@ -725,7 +728,7 @@ Both GE registrations can coexist.
 - [ ] `agents-cli scaffold create game-producer --agent adk --deployment-target agent_runtime --region $REGION --prototype`
 - [ ] `app/tools.py`: async `generate_character_portrait(art_brief, tool_context, aspect_ratio="1:1", image_size="1K")` → `gemini-3.1-flash-image` with `ImageConfig(aspect_ratio, image_size)`; keep raw PNG bytes in an in-process cache (module dict) keyed by a token, stash only that token as `portrait_key` in state (end-of-turn callback attaches the bytes inline — NO bucket/URL). Allowed aspect_ratio {1:1,3:2,2:3,3:4,1:4,4:1,4:3,4:5,5:4,1:8,8:1,9:16,16:9,21:9,9:21}; image_size {512,1K,2K,4K}; validate+fallback; docstring lists exact allowed values (LLM reads it).
 - [ ] `app/render.py`: `render_character_card(name, tagline, lore, stats_json, skills_json, localization_markdown, world='', tool_context=None)` builds the **Markdown sheet** split into `md_top`=title/tagline/World and `md_bottom`=Lore/Stats/Skills/Localization (**`md_bottom` starts with a blank line before its first `##` heading** so GE doesn't show it as literal text); localization reordered zh-CN→es→ja; stash md_top/md_bottom in state; return `{status,name}`.
-- [ ] `app/agent.py`: root `Agent` + 5 AgentTools (researcher=google_search-only (IP check + research the game/genre's art style, story themes, trends); art_creator owns the portrait tool and passes aspect_ratio/image_size; story_writer; skill_designer; localization_agent=`RemoteA2aAgent` → `$LOCALIZATION_AGENT_URL/a2a/app/.well-known/agent-card.json`). `PreloadMemoryTool` + `after_agent_callback _finalize_turn`: save memory; take cached portrait bytes via `portrait_key`; return interleaved `[text(md_top), portrait BYTES, text(md_bottom)]`. Instruction: reply in user's language; narrate each step (`**Specialist** emoji status` + blank line) before each tool call; Markdown path emits NO image/link.
+- [ ] `app/agent.py`: root `Agent` + 5 AgentTools (researcher=built-in-tools agent with `google_search`+`url_context` (two built-ins coexist, no function tools mixed in): IP check + research the game/genre's art style, story themes, trends; reads user-supplied reference URLs via `url_context`, and user-attached documents as authoritative game background (producer extracts the doc text). Producer forwards research findings — canon, genre/style, user background — into art_creator/story_writer/skill_designer; art_creator owns the portrait tool and passes aspect_ratio/image_size; story_writer; skill_designer; localization_agent=`RemoteA2aAgent` → `$LOCALIZATION_AGENT_URL/a2a/app/.well-known/agent-card.json`). `PreloadMemoryTool` + `after_agent_callback _finalize_turn`: save memory; take cached portrait bytes via `portrait_key`; return interleaved `[text(md_top), portrait BYTES, text(md_bottom)]`. Instruction: reply in user's language; narrate each step (`**Specialist** emoji status` + blank line) before each tool call; Markdown path emits NO image/link.
 - [ ] `app/agent_runtime_app.py`: plain `AdkApp` (Agent Runtime path; managed memory auto-wired to this deployment's own engine).
 - [ ] `game-producer/.env` (**local** config, in-memory): GENAI_USE_VERTEXAI, PROJECT, LOCATION=global, LOCALIZATION_AGENT_URL=http://localhost:8000 (deploy overrides to $LOC_URL). NO `AGENT_ENGINE_ID`/`AGENT_ENGINE_LOCATION` (managed memory wired at deploy time); NO bucket vars.
 

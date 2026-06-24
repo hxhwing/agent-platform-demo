@@ -37,7 +37,7 @@ import google.auth
 from google.adk.agents import Agent
 from google.adk.apps import App
 from google.adk.models import Gemini
-from google.adk.tools import google_search
+from google.adk.tools import google_search, url_context
 from google.adk.tools.preload_memory_tool import PreloadMemoryTool
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.agents.callback_context import CallbackContext
@@ -76,16 +76,19 @@ LOCALIZATION_CARD_URL = f"{LOCALIZATION_BASE_URL}/a2a/app{AGENT_CARD_WELL_KNOWN_
 
 # ---------------------------------------------------------------- specialists
 
-# Built-in tools (google_search) must be the ONLY tool on their agent, so the
-# researcher is its own agent and the root reaches it as an AgentTool.
+# Built-in tools must be the ONLY kind of tool on their agent (no function tools
+# mixed in), so the researcher is its own agent and the root reaches it as an
+# AgentTool. Two BUILT-IN tools, however, can coexist: Gemini 3 supports
+# google_search + url_context together, and may use both in a single turn.
 researcher = Agent(
     name="researcher",
     model=_model(),
-    description="Searches the web: is this a known game IP, and what art style / story themes / trends define the relevant game or genre.",
+    description="Researches the web (and any user-provided URLs): is this a known game IP, and what art style / story themes / trends define the relevant game or genre.",
     instruction="""
 You are the RESEARCHER for a game studio. Given a character brief (and any name
-or distinctive details the producer passes you), use `google_search` to gather
-TWO things the other specialists will build on:
+or distinctive details the producer passes you), gather TWO things the other
+specialists will build on. Use `google_search` for live web search, and
+`url_context` to read any URL the producer hands you.
 
 A. IP CHECK — is this a KNOWN, existing game (or other established IP) character?
    - If YES, return canonical facts the team must stay faithful to: franchise /
@@ -101,10 +104,23 @@ B. GENRE & STYLE RESEARCH — for the relevant game/franchise (or, if original, 
    - story / lore themes and tone
    - notable characters, mechanics, and current trends / hotspots in that space
 
-Add a short "source" note. Be concise and factual; never invent canon — if unsure
-about IP, treat it as ORIGINAL but still give the genre/style research.
+C. USER-PROVIDED BACKGROUND (when present) — the producer may pass you URLs and/or
+   background text extracted from documents the user supplied as the game's world /
+   lore reference. Treat this material as AUTHORITATIVE game background:
+   - For each URL, use `url_context` to read it and fold its world/art/lore details
+     into your answer.
+   - Let this provided material drive the GENRE & STYLE research (B); use
+     `google_search` only to FILL GAPS the material doesn't cover (e.g. verifying
+     whether the IP really exists, or current trends not in the source). Do not
+     contradict the user's background with generic search results.
+   - For the IP CHECK (A), facts still win: never assert canon the sources don't
+     support.
+
+Add a short "source" note (cite provided URLs/docs and any searches). Be concise
+and factual; never invent canon — if unsure about IP, treat it as ORIGINAL but
+still give the genre/style research.
 """,
-    tools=[google_search],
+    tools=[google_search, url_context],
 )
 
 art_creator = Agent(
@@ -327,13 +343,30 @@ WORKFLOW (call tools in this order; pass each result forward):
    canonical facts (franchise, name, look, abilities), treat them as ground
    truth and pass them to the next specialists so the character stays faithful.
    If it returns "ORIGINAL — no established IP found", create freely.
-3. art_creator — pass the sketch + brief + any canonical look from research
-   (and any recalled art style), AND any image aspect ratio / resolution the user
-   asked for (e.g. "4:3", "横屏", "2K"). Get the portrait public_url and art-style note.
-4. story_writer — get name, tagline, lore, signature dialogue. If research found
-   canon, stay faithful to it; otherwise invent.
-5. skill_designer — get the stats + skills JSON (anchor to canonical abilities
-   if research provided them).
+   USER-PROVIDED BACKGROUND: if the user gave any reference URLs as the game's
+   world/lore, pass those URLs through verbatim — the researcher reads them with
+   url_context. If the user uploaded DOCUMENTS as background, you can see them
+   directly; extract the relevant world / art-style / lore points into a short
+   text summary and pass THAT to the researcher (it only receives text). Tell the
+   researcher to treat this provided material as authoritative game background.
+
+   RESEARCH FINDINGS = what the researcher returns: (a) IP canon (or "ORIGINAL"),
+   (b) genre & style research (art direction, lore themes, trends), and (c) any
+   user-provided background (URL/document) it folded in. The specialists DO NOT
+   share context with each other or with the researcher — they only see what you
+   pass them. So you MUST forward the RELEVANT research findings as input to EACH
+   of steps 3, 4 and 5 below; never assume a specialist already knows them.
+3. art_creator — pass the sketch + brief + the research findings RELEVANT to art:
+   canonical look (if any), the genre/style art direction, and any user-provided
+   world/art background (plus any recalled art style), AND any image aspect ratio /
+   resolution the user asked for (e.g. "4:3", "横屏", "2K"). Get the portrait
+   public_url and art-style note.
+4. story_writer — pass the research findings RELEVANT to story: IP canon (stay
+   faithful to it if found; otherwise invent), the genre/lore themes & tone, and
+   any user-provided world background. Get name, tagline, lore, signature dialogue.
+5. skill_designer — pass the research findings RELEVANT to mechanics: canonical
+   abilities/stats (anchor to them if research provided them) and the genre's
+   typical mechanics. Get the stats + skills JSON.
 6. localization_agent — send the character package (name, tagline, lore, the
    signature dialogue) in ONE call. This is an EXTERNAL studio reached over A2A;
    one call returns ALL languages as a table. Call it EXACTLY ONCE — never call it
