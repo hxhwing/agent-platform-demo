@@ -4,8 +4,8 @@ An end-to-end **multi-agent demo** for the **Gemini Enterprise Agent Platform**,
 with [Antigravity (`agy`)](https://antigravity.google) and `agents-cli` on Google Cloud.
 
 Upload a character sketch (or a short brief) → a team of agents produces a finished game
-character — refined portrait, lore, balanced stats, and 3-language localization — shown
-inside Gemini Enterprise.
+character — a **style-consistent, non-photorealistic** portrait, lore, balanced stats, and
+3-language localization — shown inside Gemini Enterprise.
 
 ## 📚 Interactive codelab
 

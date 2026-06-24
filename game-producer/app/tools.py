@@ -67,6 +67,9 @@ async def generate_character_portrait(
         art_brief: A rich, self-contained image prompt describing the character's
             appearance, outfit, colour palette, mood and art style. Write it as a
             single descriptive paragraph — do NOT just pass the user's raw words.
+            ALWAYS describe STYLIZED GAME ART / character illustration consistent
+            with the target game/genre's art style; never photorealistic or a real
+            photo (even if the request says "写实/realistic").
         aspect_ratio: Image aspect ratio. MUST be EXACTLY one of: "1:1", "3:2",
             "2:3", "3:4", "1:4", "4:1", "4:3", "4:5", "5:4", "1:8", "8:1", "9:16",
             "16:9", "21:9", "9:21". Pick the closest to what the user asked for
