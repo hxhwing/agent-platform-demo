@@ -47,6 +47,8 @@ graph TD
     GP --> AD
     GP --> LW
     GP --> BD
+    R -->|"built-in"| GS["🔍 google_search"]
+    R -->|"built-in"| UC["🔗 url_context"]
   end
   AD -->|"gemini-3.1-flash-image"| IMG["🖼️ portrait PNG"]
   IMG --> GP
