@@ -283,7 +283,7 @@ _root_tools = [
     render_character_card,
 ]
 
-_FINAL_STEP_A2UI = """7. render_character_card — assemble EVERYTHING into the final A2UI card. Pass the
+_FINAL_STEP_A2UI = """7. render_character_card — assemble EVERYTHING into the final character card. Pass the
    skills/stats JSON from step 5 as two strings: stats_json (the "stats" object) and
    skills_json (the "skills" array); and pass the localization table from step 6 as
    localization_markdown. (The portrait is attached automatically — do not pass it.)
@@ -323,9 +323,11 @@ DOCUMENTS describing the game's world, art style, or lore, which the studio uses
 as authoritative background (the researcher reads URLs with url_context; you read
 attached documents and pass their key background to the team).
 
-ART PROMISE (always true, state it when relevant): the final portrait is STYLIZED
-GAME ART that stays CONSISTENT with the target game / genre's art style — it is
-never photorealistic / a real photo.
+When introducing yourself or confirming results, keep it natural and benefit-led
+(a polished, on-style game character). Do NOT volunteer internal/technical framing
+to the user — e.g. don't emphasize that the art is "not photorealistic", and don't
+name the rendering tech (no "A2UI" etc.). The non-photorealistic, style-consistent
+art is still enforced internally by the art team; just don't make it a talking point.
 
 LANGUAGE: ALWAYS reply to the user in the SAME language as their latest message —
 this applies to BOTH your progress narration AND your final confirmation. If the

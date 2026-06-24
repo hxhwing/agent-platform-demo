@@ -143,7 +143,7 @@ def render_character_card(
     world: str = "",
     tool_context: ToolContext = None,
 ) -> dict:
-    """Render the finished character as an A2UI v0.8 card (the demo deliverable).
+    """Assemble and render the finished character card (the final deliverable).
 
     Call this LAST, after you have the lore, stats, skills and the localization
     table. The card (and the portrait) are emitted to Gemini Enterprise
